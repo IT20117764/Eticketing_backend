@@ -1,20 +1,9 @@
-﻿//using Microsoft.AspNetCore.Mvc;
-
-//namespace E_TicketingBackend.Controllers
-//{
-//    public class TicketController : Controller
-//    {
-//        public IActionResult Index()
-//        {
-//            return View();
-//        }
-//    }
-//}
-using E_TicketingBackend.DataAccessLayer.IDataAccessLayer;
+﻿using E_TicketingBackend.DataAccessLayer.IDataAccessLayer;
 using E_TicketingBackend.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+//Ticket Controller
 namespace E_TicketingBackend.Controllers
 {
     [Route("api/[controller]/[Action]")]
@@ -29,10 +18,11 @@ namespace E_TicketingBackend.Controllers
             _ticketDAL = ticketDAL;
         }
 
+        //This method use to add new reservation for train
         [HttpPost]
-        public async Task<IActionResult> addReservation(TicketRequestDTO request)
+        public async Task<IActionResult> addReservation(RequestDTO request)
         {
-            TicketResponseDTO response = new TicketResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _ticketDAL.addReservation(request);
@@ -46,11 +36,11 @@ namespace E_TicketingBackend.Controllers
             return Ok(response);
         }
 
-
+        //This method use to get all reservations 
         [HttpGet]
         public async Task<IActionResult> getAllReservation()
         {
-            TicketResponseDTO response = new TicketResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _ticketDAL.getAllReservation();
@@ -65,10 +55,11 @@ namespace E_TicketingBackend.Controllers
 
         }
 
+        //This method use to update reservation by id 
         [HttpPost]
-        public async Task<IActionResult> updateReservationById(TicketRequestDTO request)
+        public async Task<IActionResult> updateReservationById(RequestDTO request)
         {
-            TicketResponseDTO response = new TicketResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _ticketDAL.updateReservationById(request);
@@ -82,13 +73,32 @@ namespace E_TicketingBackend.Controllers
             return Ok(response);
         }
 
+        //This method use to get reservation by id 
         [HttpPost]
         public async Task<IActionResult> getReservationById([FromQuery] string _id)
         {
-            TicketResponseDTO response = new TicketResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _ticketDAL.getReservationById(_id);
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+            }
+
+            return Ok(response);
+        }
+
+        //This method use to get get reservation by NIC 
+        [HttpPost]
+        public async Task<IActionResult> getReservationByNic(RequestDTO request)
+        {
+            ResponseDTO response = new ResponseDTO();
+            try
+            {
+                response = await _ticketDAL.getReservationByNic(request.nic);
             }
             catch (Exception ex)
             {

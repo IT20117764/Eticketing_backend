@@ -4,33 +4,36 @@ using MongoDB.Driver;
 
 namespace E_TicketingBackend.DataAccessLayer
 {
+    //User manegement Data Access Layer
     public class UserDAL : IUserDAL
     {
         private readonly IConfiguration _configuration;
         private readonly MongoClient _mongoConnection;
-        private readonly IMongoCollection<UserRequestDTO> _booksCollection;
+        private readonly IMongoCollection<UserDTO> _booksCollection;
+
+        //This method use to create a DB Connection
         public UserDAL(IConfiguration configuration)
         {
             _configuration = configuration;
             _mongoConnection = new MongoClient(_configuration["BookStoreDatabase:ConnectionString"]);
             var MongoDataBase = _mongoConnection.GetDatabase(_configuration["BookStoreDatabase:DatabaseName"]);
-            _booksCollection = MongoDataBase.GetCollection<UserRequestDTO>(_configuration["BookStoreDatabase:BooksCollectionName"]);
+            _booksCollection = MongoDataBase.GetCollection<UserDTO>(_configuration["BookStoreDatabase:BooksCollectionName"]);
         }
-
-        public async Task<UserResponseDTO> getAccountById(string nic)
+        //This method use to get user account by NIC 
+        public async Task<ResponseDTO> getAccountById(string nic)
         {
-            UserResponseDTO response = new UserResponseDTO();
+            ResponseDTO response = new ResponseDTO();
 
             try
             {
-                response.data = new List<UserRequestDTO>();
-                response.data = await _booksCollection.Find(x => x.NIC == nic).ToListAsync();
+                response.userDTOs = new List<UserDTO>();
+                response.userDTOs = await _booksCollection.Find(x => x.NIC == nic).ToListAsync();
 
                 response.IsSuccess = true;
                 response.Message = "Successfull";
 
 
-                if (response.data == null)
+                if (response.userDTOs == null)
                 {
                     response.IsSuccess = true;
                     response.Message = "No Record found";
@@ -45,15 +48,13 @@ namespace E_TicketingBackend.DataAccessLayer
             return response;
         }
 
-        public async Task<UserResponseDTO> deletAccountById(string nic)
+        //This method use to Delete a user account by NIC
+        public async Task<ResponseDTO> deletAccountById(string nic)
         {
-            UserResponseDTO response = new UserResponseDTO();
+            ResponseDTO response = new ResponseDTO();
 
             try
             {
-                response.data = new List<UserRequestDTO>();
-                response.data = await _booksCollection.Find(x => x.NIC == nic).ToListAsync();
-
                 var result = await _booksCollection.DeleteOneAsync(x => x.NIC == nic);
 
                 response.IsSuccess = true;
@@ -70,13 +71,14 @@ namespace E_TicketingBackend.DataAccessLayer
             return response;
         }
 
-        public async Task<UserResponseDTO> updateAccountById(UserRequestDTO request)
+        //This method use to Update user account by nic
+        public async Task<ResponseDTO> updateAccountById(RequestDTO request)
         {
-            UserResponseDTO response = new UserResponseDTO();
+            ResponseDTO response = new ResponseDTO();
 
             try
             {
-                var res = await _booksCollection.Find(x => x.NIC == request.NIC).ToListAsync();
+                var res = await _booksCollection.Find(x => x.NIC == request.userDto.NIC).ToListAsync();
 
                 if (res.Count == 0)
                 {
@@ -84,14 +86,12 @@ namespace E_TicketingBackend.DataAccessLayer
                     response.Message = "No user";
                 }
                 else
-                {
-                    request._id = res[0]._id;
+                {;
 
-                    var Result = await _booksCollection.ReplaceOneAsync(x => x._id == res[0]._id, request);
+                    var Result = await _booksCollection.ReplaceOneAsync(x => x._id == res[0]._id, request.userDto);
 
-                    var res1 = await _booksCollection.Find(x => x.NIC == request.NIC).ToListAsync();
+                    var res1 = await _booksCollection.Find(x => x.NIC == request.userDto.NIC).ToListAsync();
 
-                    response.data = res1;
                     response.IsSuccess = true;
                     response.Message = "Successfull updated";
                 }
@@ -105,18 +105,19 @@ namespace E_TicketingBackend.DataAccessLayer
             return response;
         }
 
-        public async Task<UserResponseDTO> GetAllUsers()
+        //This method use to get all user accounts
+        public async Task<ResponseDTO> GetAllUsers()
         {
-            UserResponseDTO response = new UserResponseDTO();
+            ResponseDTO response = new ResponseDTO();
 
             try
             {
-                response.data = new List<UserRequestDTO>();
-                response.data = await _booksCollection.Find(x => true).ToListAsync();
+                response.userDTOs = new List<UserDTO>();
+                response.userDTOs = await _booksCollection.Find(x => true).ToListAsync();
                 response.IsSuccess = true;
                 response.Message = "Data Fetch Successfully";
 
-                if (response.data.Count == 0)
+                if (response.userDTOs.Count == 0)
                 {
                     response.Message = "No Record Found";
                 }
@@ -130,8 +131,6 @@ namespace E_TicketingBackend.DataAccessLayer
             return response;
 
         }
-
-
     }
 }
 

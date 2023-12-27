@@ -3,6 +3,7 @@ using E_TicketingBackend.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+//TrainDTO Controller
 namespace CrudOperations.Controllers
 {
     [Route("api/[controller]/[Action]")]
@@ -17,10 +18,11 @@ namespace CrudOperations.Controllers
             _trainDAL = trainDAL;
         }
 
+        //This method use to add a new Train 
         [HttpPost]
-        public async Task<IActionResult> addTrain(TrainRequestDTO request)
+        public async Task<IActionResult> addTrain(RequestDTO request)
         {
-            TrainResponseDTO response = new TrainResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _trainDAL.addTrain(request);
@@ -34,10 +36,30 @@ namespace CrudOperations.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> addSchedule(ScheduleRequestDTO request)
+        //This method use to Get all Trains
+        [HttpGet]
+        public async Task<IActionResult> GetAllTrain()
         {
-            ScheduleResponseDTO response = new ScheduleResponseDTO();
+            ResponseDTO response = new ResponseDTO();
+            try
+            {
+                response = await _trainDAL.GetAllTrain();
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = "Exception Occurs : " + ex.Message;
+            }
+
+            return Ok(response);
+
+        }
+
+        //This method use to Add new train schedule
+        [HttpPost]
+        public async Task<IActionResult> addSchedule(RequestDTO request)
+        {
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _trainDAL.addSchedule(request);
@@ -51,10 +73,11 @@ namespace CrudOperations.Controllers
             return Ok(response);
         }
 
+        //This method use to get all train schedule
         [HttpGet]
         public async Task<IActionResult> GetAllSchedule()
         {
-            ScheduleResponseDTO response = new ScheduleResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _trainDAL.GetAllSchedule();
@@ -69,10 +92,11 @@ namespace CrudOperations.Controllers
 
         }
 
+        //This method use to update train schedule by ID 
         [HttpPost]
-        public async Task<IActionResult> updateScheduleById(ScheduleRequestDTO request)
+        public async Task<IActionResult> updateScheduleById(RequestDTO request)
         {
-            ScheduleResponseDTO response = new ScheduleResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _trainDAL.updateScheduleById(request);
@@ -86,10 +110,11 @@ namespace CrudOperations.Controllers
             return Ok(response);
         }
 
+        //This method use to get train schedule by ID
         [HttpPost]
         public async Task<IActionResult> getSheduleById([FromQuery] string _id)
         {
-            ScheduleResponseDTO response = new ScheduleResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _trainDAL.getSheduleById(_id);
@@ -104,13 +129,69 @@ namespace CrudOperations.Controllers
 
         }
 
+        //This method use to cancel Train reservation schedule
         [HttpPost]
-        public async Task<IActionResult> cancelTrainReservation(ScheduleRequestDTO request)
+        public async Task<IActionResult> cancelTrainReservation(RequestDTO request)
         {
-            ScheduleResponseDTO response = new ScheduleResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _trainDAL.cancelTrainReservation(request);
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+            }
+
+            return Ok(response);
+        }
+
+        //This method use to get a schedule by train code
+        [HttpPost]
+        public async Task<IActionResult> getSheduleByTrainId(RequestDTO request)
+        {
+            ResponseDTO response = new ResponseDTO();
+            try
+            {
+                response = await _trainDAL.getSheduleByTrainId(request.trainCode);
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+            }
+
+            return Ok(response);
+
+        }
+
+        //This method use to cancel train 
+        [HttpPost]
+        public async Task<IActionResult> cancelTrain(RequestDTO request)
+        {
+            ResponseDTO response = new ResponseDTO();
+            try
+            {
+                response = await _trainDAL.cancelTrain(request);
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+            }
+
+            return Ok(response);
+        }
+
+        //This method use to update traun by id
+        [HttpPost]
+        public async Task<IActionResult> updateTrainById(RequestDTO request)
+        {
+            ResponseDTO response = new ResponseDTO();
+            try
+            {
+                response = await _trainDAL.updateTrainById(request);
             }
             catch (Exception ex)
             {

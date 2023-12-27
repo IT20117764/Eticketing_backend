@@ -24,6 +24,7 @@ namespace Authentication_System.Controllers
             _authenticationDataAccess = authenticationDataAccess;
         }
 
+        //This method use to user registration
         [HttpPost]
         public async Task<IActionResult> RegisterUser(RegisterUserRequest request)
         {
@@ -41,13 +42,14 @@ namespace Authentication_System.Controllers
             return Ok(response);
         }
 
+        //This method use to user Login
         [HttpPost]
-        public async Task<IActionResult> UserLogin([FromQuery] string Username, string Password)
+        public async Task<IActionResult> UserLogin(UserLoginRequest request)
         {
             UserLoginResponse response = new UserLoginResponse();
             try
             {
-                response = await _authenticationDataAccess.UserLogin(Username, Password);
+                response = await _authenticationDataAccess.UserLogin(request);
             }
             catch (Exception ex)
             {

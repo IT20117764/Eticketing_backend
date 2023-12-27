@@ -1,35 +1,30 @@
-﻿//namespace E_TicketingBackend.DataAccessLayer
-//{
-//    public class TicketDAL
-//    {
-//    }
-//}
-using E_TicketingBackend.DataAccessLayer.IDataAccessLayer;
+﻿using E_TicketingBackend.DataAccessLayer.IDataAccessLayer;
 using E_TicketingBackend.Model;
+using Microsoft.AspNetCore.Http;
 using MongoDB.Driver;
 
+//This is a Ticket Data Access Layer
 namespace E_TicketingBackend.DataAccessLayer
 {
     public class TicketDAL : ITicketDAL
     {
         private readonly IConfiguration _configuration;
         private readonly MongoClient _mongoConnection;
-        //private readonly IMongoCollection<TrainRequestDTO> _booksCollection;
-        private readonly IMongoCollection<TicketRequestDTO> _ticketCollection;
+        private readonly IMongoCollection<TicketDTO> _ticketCollection;
+
+        //This method use to create a DB Connection
         public TicketDAL(IConfiguration configuration)
         {
             _configuration = configuration;
             _mongoConnection = new MongoClient(_configuration["BookStoreDatabase:ConnectionString"]);
             var MongoDataBase = _mongoConnection.GetDatabase(_configuration["BookStoreDatabase:DatabaseName"]);
-            //_booksCollection = MongoDataBase.GetCollection<TrainRequestDTO>(_configuration["BookStoreDatabase:TrainCollectionName"]);
-            _ticketCollection = MongoDataBase.GetCollection<TicketRequestDTO>(_configuration["BookStoreDatabase:ticketCollaction"]);
-
+            _ticketCollection = MongoDataBase.GetCollection<TicketDTO>(_configuration["BookStoreDatabase:ticketCollaction"]);
         }
 
-
-        public async Task<TicketResponseDTO> addReservation(TicketRequestDTO request)
+        //This method use to add new reservation for train
+        public async Task<ResponseDTO> addReservation(RequestDTO request)
         {
-            TicketResponseDTO response = new TicketResponseDTO();
+            ResponseDTO response = new ResponseDTO();
 
             try
             {
@@ -37,7 +32,7 @@ namespace E_TicketingBackend.DataAccessLayer
 
                 //if (res.Count == 0)
                 //{
-                _ticketCollection.InsertOneAsync(request);
+                await _ticketCollection.InsertOneAsync(request.ticketDto);
                 response.IsSuccess = true;
                 response.Message = "Successfull create reservation";
                 //}
@@ -55,17 +50,18 @@ namespace E_TicketingBackend.DataAccessLayer
             return response;
         }
 
-        public async Task<TicketResponseDTO> getAllReservation()
+        //This method use to get all reservations 
+        public async Task<ResponseDTO> getAllReservation()
         {
-            TicketResponseDTO response = new TicketResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             response.IsSuccess = true;
             response.Message = "Data Fetch Successfully";
 
             try
             {
-                response.ticketData = new List<TicketRequestDTO>();
-                response.ticketData = await _ticketCollection.Find(x => true).ToListAsync();
-                if (response.ticketData.Count == 0)
+                response.ticketDTOs = new List<TicketDTO>();
+                response.ticketDTOs = await _ticketCollection.Find(x => true).ToListAsync();
+                if (response.ticketDTOs.Count == 0)
                 {
                     response.Message = "No Record Found";
                 }
@@ -79,21 +75,33 @@ namespace E_TicketingBackend.DataAccessLayer
             return response;
         }
 
-        public async Task<TicketResponseDTO> updateReservationById(TicketRequestDTO request)
+        //This method use to update reservation by id 
+        public async Task<ResponseDTO> updateReservationById(RequestDTO request)
         {
 
-            TicketResponseDTO response = new TicketResponseDTO();
+            ResponseDTO response = new ResponseDTO();
 
             try
             {
-                var Result = await _ticketCollection.ReplaceOneAsync(x => x._id == request._id, request);
 
-                var res1 = await _ticketCollection.Find(x => x._id == request._id).ToListAsync();
+                if (request.ticketDto.status == 0)
+                {
+                    var Result = await _ticketCollection.ReplaceOneAsync(x => x._id == request.ticketDto._id, request.ticketDto);
+                    response.IsSuccess = true;
+                    response.Message = "Successfull update Ticket";
+                }
+                else
+                {
+                    DateTime requiredDate = DateTime.Now.AddDays(5);
+                    DateTime dateTime1 = Convert.ToDateTime(request.ticketDto.reservationDate);
 
-                response.ticketData = res1;
-                response.IsSuccess = true;
-                response.Message = "Successfull update Ticket";
-
+                    if (requiredDate <= dateTime1)
+                    {
+                        var Result = await _ticketCollection.ReplaceOneAsync(x => x._id == request.ticketDto._id, request.ticketDto);
+                        response.IsSuccess = true;
+                        response.Message = "Successfull cancel Ticket";
+                    }
+                }
 
             }
             catch (Exception ex)
@@ -106,20 +114,21 @@ namespace E_TicketingBackend.DataAccessLayer
 
         }
 
-        public async Task<TicketResponseDTO> getReservationById(string _id)
+        //This method use to get reservation by id 
+        public async Task<ResponseDTO> getReservationById(string _id)
         {
-            TicketResponseDTO response = new TicketResponseDTO();
+            ResponseDTO response = new ResponseDTO();
 
             try
             {
-                response.ticketData = new List<TicketRequestDTO>();
-                response.ticketData = await _ticketCollection.Find(x => x._id == _id).ToListAsync();
+                response.ticketDTOs = new List<TicketDTO>();
+                response.ticketDTOs = await _ticketCollection.Find(x => x._id == _id).ToListAsync();
 
                 response.IsSuccess = true;
                 response.Message = "Successfull";
 
 
-                if (response.ticketData == null)
+                if (response.ticketDTOs == null)
                 {
                     response.IsSuccess = true;
                     response.Message = "No Record found";
@@ -134,5 +143,33 @@ namespace E_TicketingBackend.DataAccessLayer
             return response;
         }
 
+        //This method use to get get reservation by NIC 
+        public async Task<ResponseDTO> getReservationByNic(string nic)
+        {
+            ResponseDTO response = new ResponseDTO();
+
+            try
+            {
+                response.ticketDTOs = new List<TicketDTO>();
+                response.ticketDTOs = await _ticketCollection.Find(x => x.nic == nic).ToListAsync();
+
+                response.IsSuccess = true;
+                response.Message = "Successfull";
+
+
+                if (response.ticketDTOs == null)
+                {
+                    response.IsSuccess = true;
+                    response.Message = "No Record found";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = "Exception Occurs : " + ex.Message;
+            }
+
+            return response;
+        }
     }
 }

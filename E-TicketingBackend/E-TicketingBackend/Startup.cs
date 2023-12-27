@@ -35,6 +35,17 @@ namespace Eticketing
             services.AddScoped<ITrainDAL, TrainDAL>();
             services.AddScoped<ITicketDAL, TicketDAL>();
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins",
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyMethod()
+                               .AllowAnyHeader();
+                    });
+            });
+
             //----------------------------------------------------------------
             #region Swagger
 
@@ -114,6 +125,7 @@ namespace Eticketing
             app.UseRouting();
 
             app.UseAuthorization();
+            app.UseCors("AllowAllOrigins");
 
             app.UseEndpoints(endpoints =>
             {

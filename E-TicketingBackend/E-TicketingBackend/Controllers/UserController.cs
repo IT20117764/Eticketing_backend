@@ -1,9 +1,10 @@
-﻿using E_TicketingBackend.DataAccessLayer;
-using E_TicketingBackend.DataAccessLayer.IDataAccessLayer;
+﻿using E_TicketingBackend.DataAccessLayer.IDataAccessLayer;
 using E_TicketingBackend.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+
+//Ticket Controller
 namespace CrudOperations.Controllers
 {
     [Route("api/[controller]/[Action]")]
@@ -18,13 +19,14 @@ namespace CrudOperations.Controllers
             _userDAL = userDAL;
         }
 
+        //This method use to get user account by NIC 
         [HttpPost]
-        public async Task<IActionResult> getAccountById([FromQuery] string nic)
+        public async Task<IActionResult> getAccountById(RequestDTO request)
         {
-            UserResponseDTO response = new UserResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
-                response = await _userDAL.getAccountById(nic);
+                response = await _userDAL.getAccountById(request.nic);
             }
             catch (Exception ex)
             {
@@ -35,10 +37,11 @@ namespace CrudOperations.Controllers
             return Ok(response);
         }
 
+        //This method use to Delete a user account by NIC
         [HttpDelete]
         public async Task<IActionResult> deletAccountById([FromQuery] string nic)
         {
-            UserResponseDTO response = new UserResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _userDAL.deletAccountById(nic);
@@ -52,10 +55,11 @@ namespace CrudOperations.Controllers
             return Ok(response);
         }
 
+        //This method use to Update user account by nic
         [HttpPost]
-        public async Task<IActionResult> updateAccountById(UserRequestDTO request)
+        public async Task<IActionResult> updateAccountById(RequestDTO request)
         {
-            UserResponseDTO response = new UserResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _userDAL.updateAccountById(request);
@@ -69,10 +73,11 @@ namespace CrudOperations.Controllers
             return Ok(response);
         }
 
+        //This method use to get all user accounts
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
-            UserResponseDTO response = new UserResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             try
             {
                 response = await _userDAL.GetAllUsers();
@@ -85,6 +90,5 @@ namespace CrudOperations.Controllers
 
             return Ok(response);
         }
-
     }
 }

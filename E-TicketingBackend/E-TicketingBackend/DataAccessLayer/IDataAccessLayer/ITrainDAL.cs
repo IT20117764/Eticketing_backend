@@ -4,12 +4,15 @@ namespace E_TicketingBackend.DataAccessLayer.IDataAccessLayer
 {
     public interface ITrainDAL
     {
-        public Task<TrainResponseDTO> addTrain(TrainRequestDTO request);
-        public Task<ScheduleResponseDTO> addSchedule(ScheduleRequestDTO request);
-        public Task<ScheduleResponseDTO> GetAllSchedule();
-        public  Task<ScheduleResponseDTO> updateScheduleById(ScheduleRequestDTO request);
-        public  Task<ScheduleResponseDTO> getSheduleById(string _id);
-        public Task<ScheduleResponseDTO> cancelTrainReservation(ScheduleRequestDTO request);
-
+        public Task<ResponseDTO> addTrain(RequestDTO request);
+        public Task<ResponseDTO> GetAllTrain();
+        public Task<ResponseDTO> addSchedule(RequestDTO request);
+        public Task<ResponseDTO> GetAllSchedule();
+        public  Task<ResponseDTO> updateScheduleById(RequestDTO request);
+        public  Task<ResponseDTO> getSheduleById(string _id);
+        public Task<ResponseDTO> cancelTrainReservation(RequestDTO request);
+        public Task<ResponseDTO> getSheduleByTrainId(string TrainCode);
+        public Task<ResponseDTO> cancelTrain(RequestDTO request);
+        public Task<ResponseDTO> updateTrainById(RequestDTO request);
     }
 }

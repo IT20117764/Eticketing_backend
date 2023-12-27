@@ -4,9 +4,9 @@ namespace E_TicketingBackend.DataAccessLayer.IDataAccessLayer
 {
     public interface IUserDAL
     {
-        public Task<UserResponseDTO> getAccountById(string nic);
-        public Task<UserResponseDTO> deletAccountById(string nic);
-        public Task<UserResponseDTO> updateAccountById(UserRequestDTO request);
-        public Task<UserResponseDTO> GetAllUsers();
+        public Task<ResponseDTO> getAccountById(string nic);
+        public Task<ResponseDTO> deletAccountById(string nic);
+        public Task<ResponseDTO> updateAccountById(RequestDTO request);
+        public Task<ResponseDTO> GetAllUsers();
     }
 }

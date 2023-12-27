@@ -4,34 +4,38 @@ using MongoDB.Driver;
 
 namespace E_TicketingBackend.DataAccessLayer
 {
+    //Train Data Access Layer 
     public class TrainDAL : ITrainDAL
     {
         private readonly IConfiguration _configuration;
         private readonly MongoClient _mongoConnection;
-        private readonly IMongoCollection<TrainRequestDTO> _booksCollection;
-        private readonly IMongoCollection<ScheduleRequestDTO> _trainCollection;
+        private readonly IMongoCollection<TrainDTO> _trainCollection;
+        private readonly IMongoCollection<ScheduleDTO> _trainScheduleCollection;
+        private readonly IMongoCollection<TicketDTO> _ticketCollection;
+
+        //This method use to create a DB Connection
         public TrainDAL(IConfiguration configuration)
         {
             _configuration = configuration;
             _mongoConnection = new MongoClient(_configuration["BookStoreDatabase:ConnectionString"]);
             var MongoDataBase = _mongoConnection.GetDatabase(_configuration["BookStoreDatabase:DatabaseName"]);
-            _booksCollection = MongoDataBase.GetCollection<TrainRequestDTO>(_configuration["BookStoreDatabase:TrainCollectionName"]);
-            _trainCollection = MongoDataBase.GetCollection<ScheduleRequestDTO>(_configuration["BookStoreDatabase:trainScheduleCollaction"]);
-
+            _trainCollection = MongoDataBase.GetCollection<TrainDTO>(_configuration["BookStoreDatabase:TrainCollectionName"]);
+            _trainScheduleCollection = MongoDataBase.GetCollection<ScheduleDTO>(_configuration["BookStoreDatabase:trainScheduleCollaction"]);
+            _ticketCollection = MongoDataBase.GetCollection<TicketDTO>(_configuration["BookStoreDatabase:ticketCollaction"]);
         }
 
-
-        public async Task<TrainResponseDTO> addTrain(TrainRequestDTO request)
+        //This method use to add a new Train 
+        public async Task<ResponseDTO> addTrain(RequestDTO request)
         {
-            TrainResponseDTO response = new TrainResponseDTO();
+            ResponseDTO response = new ResponseDTO();
 
             try
             {
-                var res = await _booksCollection.Find(x => x.TrainCode == request.TrainCode).ToListAsync();
+                var res = await _trainCollection.Find(x => x.TrainCode == request.trainDTO.TrainCode).ToListAsync();
 
                 if (res.Count == 0)
                 {
-                    _booksCollection.InsertOneAsync(request);
+                    await _trainCollection.InsertOneAsync(request.trainDTO);
                     response.IsSuccess = true;
                     response.Message = "Successfull create train";
                 }
@@ -49,16 +53,40 @@ namespace E_TicketingBackend.DataAccessLayer
             return response;
         }
 
-        public async Task<ScheduleResponseDTO> addSchedule(ScheduleRequestDTO request)
+        //This method use to Get all Trains
+        public async Task<ResponseDTO> GetAllTrain()
         {
-
-            ScheduleResponseDTO response = new ScheduleResponseDTO();
+            ResponseDTO response = new ResponseDTO();
+            response.IsSuccess = true;
+            response.Message = "Data Fetch Successfully";
 
             try
             {
-                //var res = await _booksCollection.Find(x => x.id == request.).ToListAsync();
+                response.trainDTOs = new List<TrainDTO>();
+                response.trainDTOs = await _trainCollection.Find(x => true).ToListAsync();
+                if (response.trainDTOs.Count == 0)
+                {
+                    response.Message = "No Record Found";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = "Exception Occurs : " + ex.Message;
+            }
 
-                    var res = _trainCollection.InsertOneAsync(request);
+            return response;
+        }
+
+        //This method use to Add new train schedule
+        public async Task<ResponseDTO> addSchedule(RequestDTO request)
+        {
+
+            ResponseDTO response = new ResponseDTO();
+
+            try
+            {
+                    var res = _trainScheduleCollection.InsertOneAsync(request.scheduleDTO);
                     response.IsSuccess = true;
                     response.Message = "Successfull create schedule";
 
@@ -73,17 +101,18 @@ namespace E_TicketingBackend.DataAccessLayer
 
         }
 
-        public async Task<ScheduleResponseDTO> GetAllSchedule()
+        //This method use to get all train schedule
+        public async Task<ResponseDTO> GetAllSchedule()
         {
-            ScheduleResponseDTO response = new ScheduleResponseDTO();
+            ResponseDTO response = new ResponseDTO();
             response.IsSuccess = true;
             response.Message = "Data Fetch Successfully";
 
             try
             {
-                response.data = new List<ScheduleRequestDTO>();
-                response.data = await _trainCollection.Find(x => true).ToListAsync();
-                if (response.data.Count == 0)
+                response.scheduleDTOs = new List<ScheduleDTO>();
+                response.scheduleDTOs = await _trainScheduleCollection.Find(x => true).ToListAsync();
+                if (response.scheduleDTOs.Count == 0)
                 {
                     response.Message = "No Record Found";
                 }
@@ -97,18 +126,19 @@ namespace E_TicketingBackend.DataAccessLayer
             return response;
         }
 
-        public async Task<ScheduleResponseDTO> updateScheduleById(ScheduleRequestDTO request)
+        //This method use to update train schedule by ID 
+        public async Task<ResponseDTO> updateScheduleById(RequestDTO request)
         {
 
-            ScheduleResponseDTO response = new ScheduleResponseDTO();
+            ResponseDTO response = new ResponseDTO();
 
             try
             {
-                var Result = await _trainCollection.ReplaceOneAsync(x => x._id == request._id, request);
+                var Result = await _trainScheduleCollection.ReplaceOneAsync(x => x._id == request.scheduleDTO._id, request.scheduleDTO);
 
-                var res1 = await _trainCollection.Find(x => x._id == request._id).ToListAsync();
+                var res1 = await _trainScheduleCollection.Find(x => x._id == request.scheduleDTO._id).ToListAsync();
 
-                response.data = res1;
+                response.scheduleDTOs = res1;
                 response.IsSuccess = true;
                 response.Message = "Successfull update schedule";
                 
@@ -124,20 +154,21 @@ namespace E_TicketingBackend.DataAccessLayer
 
         }
 
-        public async Task<ScheduleResponseDTO> getSheduleById(string _id)
+        //This method use to get train schedule by ID
+        public async Task<ResponseDTO> getSheduleById(string _id)
         {
-            ScheduleResponseDTO response = new ScheduleResponseDTO();
+            ResponseDTO response = new ResponseDTO();
 
             try
             {
-                response.data = new List<ScheduleRequestDTO>();
-                response.data = await _trainCollection.Find(x => x._id == _id).ToListAsync();
+                response.scheduleDTOs = new List<ScheduleDTO>();
+                response.scheduleDTOs = await _trainScheduleCollection.Find(x => x._id == _id).ToListAsync();
 
                 response.IsSuccess = true;
                 response.Message = "Successfull";
 
 
-                if (response.data == null)
+                if (response.scheduleDTOs == null)
                 {
                     response.IsSuccess = true;
                     response.Message = "No Record found";
@@ -152,18 +183,19 @@ namespace E_TicketingBackend.DataAccessLayer
             return response;
         }
 
-        public async Task<ScheduleResponseDTO> cancelTrainReservation(ScheduleRequestDTO request)
+        //This method use to cancel Train reservation schedule
+        public async Task<ResponseDTO> cancelTrainReservation(RequestDTO request)
         {
 
-            ScheduleResponseDTO response = new ScheduleResponseDTO();
+            ResponseDTO response = new ResponseDTO();
 
             try
             {
-                var Result = await _trainCollection.ReplaceOneAsync(x => x._id == request._id, request);
+                var Result = await _trainScheduleCollection.ReplaceOneAsync(x => x._id == request.scheduleDTO._id, request.scheduleDTO);
 
-                var res1 = await _trainCollection.Find(x => x._id == request._id).ToListAsync();
+                var res1 = await _trainScheduleCollection.Find(x => x._id == request.scheduleDTO._id).ToListAsync();
 
-                response.data = res1;
+                response.scheduleDTOs = res1;
                 response.IsSuccess = true;
                 response.Message = "Successfull update schedule";
 
@@ -177,6 +209,98 @@ namespace E_TicketingBackend.DataAccessLayer
 
             return response;
 
+        }
+
+        //This method use to get a schedule by train code
+        public async Task<ResponseDTO> getSheduleByTrainId(string TrainCode)
+        {
+            ResponseDTO response = new ResponseDTO();
+
+            try
+            {
+                response.scheduleDTOs = new List<ScheduleDTO>();
+                response.scheduleDTOs = await _trainScheduleCollection.Find(x => x.train.TrainCode == TrainCode).ToListAsync();
+
+                response.IsSuccess = true;
+                response.Message = "Successfull";
+
+
+                if (response.scheduleDTOs == null)
+                {
+                    response.IsSuccess = true;
+                    response.Message = "No Record found";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = "Exception Occurs : " + ex.Message;
+            }
+
+            return response;
+        }
+
+        //This method use to cancel train 
+        public async Task<ResponseDTO> cancelTrain(RequestDTO request)
+        {
+
+            ResponseDTO response = new ResponseDTO();
+
+            try
+            {
+                var tickets = await _ticketCollection.Find(x => true).ToListAsync();
+
+                bool isValid = true;
+
+                foreach (var ticket in tickets)
+                {
+                    if (ticket.status == 0)
+                    {
+                        if (ticket.schedule.train._id == request.trainDTO._id)
+                        {
+                            response.IsSuccess = false;
+                            isValid = false;
+                            break;
+                        }
+
+                    }
+                }
+
+                if (isValid == true)
+                {
+                    var Result1 = await _trainCollection.ReplaceOneAsync(x => x._id == request.trainDTO._id, request.trainDTO);
+
+                    response.IsSuccess = true;
+                    response.Message = "Successfull update train";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = "Exception Occurs : " + ex.Message;
+            }
+            return response;
+        }
+
+        //This method use to update traun by id
+        public async Task<ResponseDTO> updateTrainById(RequestDTO request)
+        {
+
+            ResponseDTO response = new ResponseDTO();
+
+            try
+            {
+                    var Result1 = await _trainCollection.ReplaceOneAsync(x => x._id == request.trainDTO._id, request.trainDTO);
+
+                    response.IsSuccess = true;
+                    response.Message = "Successfull update train";
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = "Exception Occurs : " + ex.Message;
+            }
+            return response;
         }
     }
 }
